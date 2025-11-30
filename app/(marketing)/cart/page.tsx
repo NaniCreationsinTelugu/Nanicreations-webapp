@@ -8,7 +8,6 @@ const Cart = () => {
   const { items, updateQuantity, removeItem, subtotal } = useCart();
   const shipping = subtotal > 50 ? 0 : 5.99;
   const total = subtotal + shipping;
-
   return (
     <div className="min-h-screen bg-background">
     
