@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Minus } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart";
-
-
 const Cart = () => {
   const { items, updateQuantity, removeItem, subtotal } = useCart();
   const shipping = subtotal > 50 ? 0 : 5.99;
