@@ -3,6 +3,8 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import { useCart } from "@/lib/cart";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ProductCardProps {
   id: number;
@@ -14,6 +16,8 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ id, title, description, price, image, category }: ProductCardProps) => {
+  const { addItem } = useCart()
+  const { toast } = useToast()
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-hover animate-scale-in py-0">
         <Link href={`/product/${id}`}>
@@ -42,7 +46,7 @@ const ProductCard = ({ id, title, description, price, image, category }: Product
         <p className="text-xl font-bold text-primary">${price.toFixed(2)}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button className="w-full">
+        <Button className="w-full" onClick={() => { addItem({ id, title, price, image }); toast({ title: "Added to cart", description: title }) }}>
           <ShoppingCart className="mr-2 h-4 w-4" />
           Add to Cart
         </Button>

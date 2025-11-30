@@ -4,9 +4,6 @@ import { Input } from "@/components/ui/input";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
-import arduinoKit from "@/public/arduino-kit.jpg";
-import iotProject from "@/public/iot-project.jpg";
-import components from "@/public/components.jpg";
 
 const Home = () => {
   const featuredProducts = [

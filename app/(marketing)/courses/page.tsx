@@ -1,39 +1,12 @@
 
-import WhatsAppButton from "@/components/WhatsAppButton";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Clock, Award } from "lucide-react";
+import { db } from "@/db/drizzle";
+import { course } from "@/db/schema";
 
-const Courses = () => {
-  const courses = [
-    {
-      id: 1,
-      title: "Arduino Programming Fundamentals",
-      description: "Learn the basics of Arduino programming and build your first circuits",
-      level: "Beginner",
-      duration: "4 weeks",
-      lessons: 12,
-      price: 29.99,
-    },
-    {
-      id: 2,
-      title: "IoT with ESP32",
-      description: "Master IoT development with ESP32 and cloud connectivity",
-      level: "Intermediate",
-      duration: "6 weeks",
-      lessons: 18,
-      price: 49.99,
-    },
-    {
-      id: 3,
-      title: "Robotics Engineering",
-      description: "Build and program autonomous robots from scratch",
-      level: "Advanced",
-      duration: "8 weeks",
-      lessons: 24,
-      price: 79.99,
-    },
-  ];
+const Courses = async () => {
+  const courses = await db.select().from(course);
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,7 +56,7 @@ const Courses = () => {
           ))}
         </div>
       </div>
-      <WhatsAppButton />
+
     </div>
   );
 };

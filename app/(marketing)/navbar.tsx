@@ -2,10 +2,22 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Menu, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { Loader } from "lucide-react";
+import {
+  ClerkLoaded,
+  ClerkLoading,
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+  useAuth,
+} from "@clerk/nextjs";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { items } = useCart();
+  const count = useMemo(() => items.reduce((s, i) => s + i.quantity, 0), [items]);
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -44,11 +56,28 @@ const Navbar = () => {
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
                 <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
-                  0
+                  {count}
                 </span>
               </Button>
             </Link>
-            <Button className="hidden md:flex">Sign In</Button>
+            
+            <ClerkLoading>
+              <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
+            </ClerkLoading>
+
+              <ClerkLoaded>
+              <SignedIn>
+                <UserButton />
+              </SignedIn>
+
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button size="lg" variant="primary" className="cursor-pointer ">
+                    Login
+                  </Button>
+                </SignInButton>
+              </SignedOut>
+            </ClerkLoaded>
             <Button
               variant="ghost"
               size="icon"
@@ -92,7 +121,7 @@ const Navbar = () => {
               >
                 About
               </Link>
-              <Button className="w-full">Sign In</Button>
+          
             </div>
           </div>
         )}
@@ -102,3 +131,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+import { useCart } from "@/lib/cart";
