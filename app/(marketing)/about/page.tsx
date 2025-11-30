@@ -1,6 +1,7 @@
 
 import { Target, Users, Lightbulb } from "lucide-react";
 
+
 const About = () => {
   return (
     <div className="min-h-screen bg-background text-foreground"> 
