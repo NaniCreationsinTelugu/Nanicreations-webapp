@@ -43,6 +43,56 @@ export const course = pgTable(
     duration: text("duration").notNull(),
     lessons: integer("lessons").notNull(),
     price: numeric("price", { precision: 10, scale: 2 }).notNull(),
+    thumbnail: text("thumbnail"),
   }
+);
+
+export const enrollment = pgTable(
+  "enrollment",
+  {
+    id: integer("id").primaryKey(),
+    userId: text("user_id").notNull(), // Clerk user ID
+    courseId: integer("course_id").notNull().references(() => course.id),
+    enrolledAt: text("enrolled_at").notNull(), // ISO timestamp
+    paymentSessionId: text("payment_session_id"), // Nullable for free enrollments
+  },
+  (table) => ({
+    userCourseIdx: uniqueIndex("enrollment_user_course_idx").on(table.userId, table.courseId),
+    courseIdx: index("enrollment_course_idx").on(table.courseId),
+  })
+);
+
+export const courseVideo = pgTable(
+  "course_video",
+  {
+    id: integer("id").primaryKey(),
+    courseId: integer("course_id").notNull().references(() => course.id),
+    title: text("title").notNull(),
+    youtubeUrl: text("youtube_url").notNull(),
+    duration: text("duration"), // e.g., "10:30"
+    order: integer("order").notNull(), // Display order in playlist
+    description: text("description"),
+  },
+  (table) => ({
+    courseIdx: index("course_video_course_idx").on(table.courseId),
+    orderIdx: index("course_video_order_idx").on(table.courseId, table.order),
+  })
+);
+
+export const paymentSession = pgTable(
+  "payment_session",
+  {
+    id: integer("id").primaryKey(),
+    stripeSessionId: text("stripe_session_id").notNull().unique(),
+    userId: text("user_id").notNull(),
+    courseId: integer("course_id").notNull().references(() => course.id),
+    amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+    status: text("status").notNull(), // 'pending', 'completed', 'failed'
+    createdAt: text("created_at").notNull(),
+    completedAt: text("completed_at"),
+  },
+  (table) => ({
+    sessionIdx: uniqueIndex("payment_session_stripe_idx").on(table.stripeSessionId),
+  })
 );
 
