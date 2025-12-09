@@ -16,18 +16,32 @@ const Collections = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [productsRes, categoriesRes] = await Promise.all([
-        fetch("/api/products", { cache: "no-store" }),
-        fetch("/api/categories", { cache: "no-store" }),
-      ]);
-      const productsJson: Product[] = await productsRes.json();
-      const categoriesJson: Array<{ slug: string; name: string }> = await categoriesRes.json();
-      setProducts(productsJson);
-      setCategories([
-        { id: "all", label: "All Products" },
-        ...categoriesJson.map((c) => ({ id: c.slug, label: c.name })),
-      ]);
-      setIsLoading(false);
+      try {
+        const [productsRes, categoriesRes] = await Promise.all([
+          fetch("/api/products", { cache: "no-store" }),
+          fetch("/api/categories", { cache: "no-store" }),
+        ]);
+
+        const productsJson = await productsRes.json();
+        const categoriesJson = await categoriesRes.json();
+
+        // Ensure we always have arrays, even if the API returns an error object
+        setProducts(Array.isArray(productsJson) ? productsJson : []);
+
+        const categoryList = Array.isArray(categoriesJson) ? categoriesJson : [];
+        setCategories([
+          { id: "all", label: "All Products" },
+          // Use category name as ID to match products API which returns category names
+          ...categoryList.map((c) => ({ id: c.name, label: c.name })),
+        ]);
+      } catch (error) {
+        console.error("Failed to load data:", error);
+        // Set empty arrays on error
+        setProducts([]);
+        setCategories([{ id: "all", label: "All Products" }]);
+      } finally {
+        setIsLoading(false);
+      }
     };
     load();
   }, []);
@@ -39,7 +53,7 @@ const Collections = () => {
   return (
     <div className="min-h-screen bg-background">
 
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -80,7 +94,7 @@ const Collections = () => {
         )}
       </div>
 
-     
+
     </div>
   );
 };

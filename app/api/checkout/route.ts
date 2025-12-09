@@ -1,86 +1,101 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs/server';
-import { stripe } from '@/lib/stripe';
-import { db } from '@/db/drizzle';
-import { course, paymentSession } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+import { db } from "@/db/drizzle";
+import { course, paymentSession } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
+import { currentUser } from "@clerk/nextjs/server";
 
-export async function POST(req: NextRequest) {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2025-11-17.clover",
+});
+
+export async function POST(request: NextRequest) {
     try {
         const user = await currentUser();
 
         if (!user) {
             return NextResponse.json(
-                { error: 'Unauthorized. Please sign in to enroll.' },
+                { error: "Unauthorized" },
                 { status: 401 }
             );
         }
 
-        const { courseId } = await req.json();
+        const { courseId } = await request.json();
 
         if (!courseId) {
             return NextResponse.json(
-                { error: 'Course ID is required' },
+                { error: "Course ID is required" },
                 { status: 400 }
             );
         }
 
-        // Fetch course details
-        const [courseData] = await db
+        // Get course details
+        const courseData = await db
             .select()
             .from(course)
             .where(eq(course.id, courseId))
             .limit(1);
 
-        if (!courseData) {
+        if (!courseData || courseData.length === 0) {
             return NextResponse.json(
-                { error: 'Course not found' },
+                { error: "Course not found" },
                 { status: 404 }
             );
         }
 
+        const selectedCourse = courseData[0];
+
+        // Create payment session record
+        const newPaymentSession = await db
+            .insert(paymentSession)
+            .values({
+                sessionId: "", // Will be updated after Stripe session creation
+                userId: user.id,
+                courseId: selectedCourse.id,
+                amount: selectedCourse.price,
+                status: "pending",
+            })
+            .returning();
+
+        const paymentSessionId = newPaymentSession[0].id;
+
         // Create Stripe checkout session
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'],
+            payment_method_types: ["card"],
             line_items: [
                 {
                     price_data: {
-                        currency: 'inr', // Changed to INR for Indian Stripe account
+                        currency: "inr",
                         product_data: {
-                            name: courseData.title,
-                            description: courseData.description,
-                            images: courseData.thumbnail ? [courseData.thumbnail] : [],
+                            name: selectedCourse.name,
+                            description: selectedCourse.description || "Course",
                         },
-                        unit_amount: Math.round(parseFloat(courseData.price) * 100), // Convert to paise
+                        unit_amount: Math.round(parseFloat(selectedCourse.price as unknown as string) * 100), // Convert to paise
                     },
                     quantity: 1,
                 },
             ],
-            mode: 'payment',
-            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/${courseId}?success=true`,
-            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses?canceled=true`,
+            mode: "payment",
+            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses/success?session_id={CHECKOUT_SESSION_ID}&payment_session_id=${paymentSessionId}`,
+            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/courses`,
             metadata: {
-                courseId: courseId.toString(),
+                courseId: selectedCourse.id.toString(),
                 userId: user.id,
+                paymentSessionId: paymentSessionId.toString(),
             },
         });
 
-        // Store payment session in database
-        await db.insert(paymentSession).values({
-            stripeSessionId: session.id,
-            userId: user.id,
-            courseId: courseId,
-            amount: courseData.price,
-            status: 'pending',
-            createdAt: new Date().toISOString(),
-            completedAt: null,
-        });
+        // Update payment session with Stripe session ID
+        await db
+            .update(paymentSession)
+            .set({ sessionId: session.id })
+            .where(eq(paymentSession.id, paymentSessionId));
 
         return NextResponse.json({ url: session.url });
-    } catch (error) {
-        console.error('Checkout error:', error);
+    } catch (error: any) {
+        console.error("Checkout error:", error);
         return NextResponse.json(
-            { error: 'Failed to create checkout session' },
+            { error: error.message || "Failed to create checkout session" },
             { status: 500 }
         );
     }

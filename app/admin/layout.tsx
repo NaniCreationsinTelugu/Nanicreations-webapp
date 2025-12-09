@@ -1,6 +1,7 @@
 import AdminSidebar from "./AdminSidebar";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { Toaster } from "sonner";
 
 export default async function AdminLayout({
     children,
@@ -24,6 +25,7 @@ export default async function AdminLayout({
             <main className="flex-1 overflow-y-auto bg-muted/10 p-8">
                 {children}
             </main>
+            <Toaster richColors position="top-right" />
         </div>
     );
 }

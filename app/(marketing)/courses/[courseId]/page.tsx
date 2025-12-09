@@ -28,23 +28,7 @@ export default async function CoursePage({ params, searchParams }: CoursePagePro
         notFound();
     }
 
-    // Check if user is enrolled
-    const [enrollmentRecord] = await db
-        .select()
-        .from(enrollment)
-        .where(
-            and(
-                eq(enrollment.userId, user.id),
-                eq(enrollment.courseId, courseIdNum)
-            )
-        )
-        .limit(1);
-
-    if (!enrollmentRecord) {
-        redirect('/courses');
-    }
-
-    // Fetch course details
+    // Fetch course details first
     const [courseData] = await db
         .select()
         .from(course)
@@ -53,6 +37,24 @@ export default async function CoursePage({ params, searchParams }: CoursePagePro
 
     if (!courseData) {
         notFound();
+    }
+
+    // Check if course is free - if not, check enrollment
+    if (!courseData.isFree) {
+        const [enrollmentRecord] = await db
+            .select()
+            .from(enrollment)
+            .where(
+                and(
+                    eq(enrollment.userId, user.id),
+                    eq(enrollment.courseId, courseIdNum)
+                )
+            )
+            .limit(1);
+
+        if (!enrollmentRecord) {
+            redirect('/courses');
+        }
     }
 
     // Fetch course videos

@@ -5,51 +5,49 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
 
-const Home = () => {
-  const featuredProducts = [
-    {
-      id: 1,
-      title: "Arduino Starter Kit",
-      description: "Complete kit with Arduino Uno, sensors, and components for beginners",
-      price: 49.99,
-      image: "/arduino-kit.jpg",
-      category: "Arduino",
-    },
-    {
-      id: 2,
-      title: "IoT Smart Home Kit",
-      description: "Build your own smart home with ESP32 and various IoT sensors",
-      price: 79.99,
-      image: "/iot-project.jpg",
-      category: "IoT",
-    },
-    {
-      id: 3,
-      title: "Component Bundle",
-      description: "Essential electronic components pack - resistors, LEDs, capacitors",
-      price: 29.99,
-      image: "/components.jpg",
-      category: "Components",
-    },
-    {
-      id: 4,
-      title: "Advanced Robotics Kit",
-      description: "Build advanced robots with motors, sensors, and Arduino Mega",
-      price: 129.99,
-      image: "/arduino-kit.jpg",
-      category: "Robotics",
-    },
-  ];
+interface Product {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  image: string;
+  category: string;
+}
+
+
+async function getFeaturedProducts() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/products`, {
+      cache: 'no-store', // Always fetch fresh data
+    });
+
+    if (!res.ok) {
+      console.error('Failed to fetch products');
+      return [];
+    }
+
+    const products = await res.json();
+    // Return only first 4 products for featured section
+    return products.slice(0, 4);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
+}
+
+const Home = async () => {
+  const featuredProducts = await getFeaturedProducts();
 
   return (
     <div className="min-h-screen bg-background">
 
-      
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/90 to-primary">
           <img
-            src= "/hero-robotics.jpg"
+            src="/hero-robotics.jpg"
             alt="Robotics workspace"
             className="h-full w-full object-cover opacity-20"
           />
@@ -84,7 +82,7 @@ const Home = () => {
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">Explore Collections</h2>
           <p className="text-muted-foreground">Browse our curated selection of projects and components</p>
         </div>
-        
+
         <div className="mb-12 grid grid-cols-2 gap-4 md:grid-cols-4">
           <Link href="/collections?category=arduino">
             <div className="group cursor-pointer rounded-lg border border-border bg-card p-6 text-center shadow-card transition-all hover:shadow-hover">
@@ -120,9 +118,15 @@ const Home = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
+          {featuredProducts.length > 0 ? (
+            featuredProducts.map((product: Product) => (
+              <ProductCard key={product.id} {...product} />
+            ))
+          ) : (
+            <div className="col-span-full text-center text-muted-foreground py-8">
+              No products available yet. Check back soon!
+            </div>
+          )}
         </div>
       </section>
 

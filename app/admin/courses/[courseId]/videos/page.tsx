@@ -49,7 +49,7 @@ export default async function AdminCourseVideosPage({ params }: AdminCourseVideo
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold mb-2">Manage Course Videos</h1>
                     <p className="text-muted-foreground">
-                        Course: {courseData.title}
+                        Course: {courseData.name}
                     </p>
                 </div>
 

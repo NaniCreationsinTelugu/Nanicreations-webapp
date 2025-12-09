@@ -1,6 +1,8 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { CheckCircle } from 'lucide-react';
 
 interface Video {
     id: number;
@@ -15,6 +17,8 @@ interface VideoPlayerProps {
     videos: Video[];
     currentVideoIndex: number;
     onVideoChange: (index: number) => void;
+    completedVideos: Set<number>;
+    onMarkComplete: (videoId: number) => void;
 }
 
 // Extract YouTube video ID from URL
@@ -31,17 +35,28 @@ function getYouTubeVideoId(url: string): string | null {
     return null;
 }
 
-export default function VideoPlayer({ videos, currentVideoIndex, onVideoChange }: VideoPlayerProps) {
+export default function VideoPlayer({ videos, currentVideoIndex, onVideoChange, completedVideos, onMarkComplete }: VideoPlayerProps) {
     if (videos.length === 0) {
         return null;
     }
 
     const currentVideo = videos[currentVideoIndex];
     const videoId = getYouTubeVideoId(currentVideo.youtubeUrl);
+    const isCompleted = completedVideos.has(currentVideo.id);
+
+    const handleMarkComplete = () => {
+        onMarkComplete(currentVideo.id);
+        // Auto-advance to next video if not the last one
+        if (currentVideoIndex < videos.length - 1) {
+            setTimeout(() => {
+                onVideoChange(currentVideoIndex + 1);
+            }, 500);
+        }
+    };
 
     return (
         <div className="space-y-4">
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden py-0">
                 <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                     {videoId ? (
                         <iframe
@@ -66,21 +81,40 @@ export default function VideoPlayer({ videos, currentVideoIndex, onVideoChange }
                 )}
             </div>
 
-            <div className="flex gap-2">
-                <button
+            <div className="flex gap-2 flex-wrap">
+                <Button
                     onClick={() => onVideoChange(Math.max(0, currentVideoIndex - 1))}
                     disabled={currentVideoIndex === 0}
-                    className="px-4 py-2 rounded-md bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+                    variant="outline"
                 >
                     ← Previous
-                </button>
-                <button
+                </Button>
+
+                <Button
+                    onClick={handleMarkComplete}
+                    variant={isCompleted ? "secondary" : "default"}
+                    className={isCompleted ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+                >
+                    {isCompleted ? (
+                        <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Completed
+                        </>
+                    ) : (
+                        <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Mark as Complete
+                        </>
+                    )}
+                </Button>
+
+                <Button
                     onClick={() => onVideoChange(Math.min(videos.length - 1, currentVideoIndex + 1))}
                     disabled={currentVideoIndex === videos.length - 1}
-                    className="px-4 py-2 rounded-md bg-primary text-primary-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+                    variant="outline"
                 >
                     Next →
-                </button>
+                </Button>
             </div>
         </div>
     );

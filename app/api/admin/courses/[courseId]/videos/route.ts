@@ -1,78 +1,118 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { currentUser } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 import { db } from '@/db/drizzle';
-import { courseVideo } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { courseVideo, course } from '@/db/schema';
+import { eq, asc } from 'drizzle-orm';
 
-export async function GET(
-    req: NextRequest,
-    { params }: { params: Promise<{ courseId: string }> }
-) {
+interface RouteContext {
+    params: Promise<{
+        courseId: string;
+    }>;
+}
+
+// GET - Fetch all videos for a course
+export async function GET(request: Request, context: RouteContext) {
     try {
-        const user = await currentUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const { courseId } = await params;
+        const { courseId } = await context.params;
         const courseIdNum = parseInt(courseId);
+
+        if (isNaN(courseIdNum)) {
+            return NextResponse.json(
+                { error: 'Invalid course ID' },
+                { status: 400 }
+            );
+        }
 
         const videos = await db
             .select()
             .from(courseVideo)
             .where(eq(courseVideo.courseId, courseIdNum))
-            .orderBy(courseVideo.order);
+            .orderBy(asc(courseVideo.order));
 
         return NextResponse.json(videos);
     } catch (error) {
         console.error('Error fetching videos:', error);
-        return NextResponse.json({ error: 'Failed to fetch videos' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Failed to fetch videos' },
+            { status: 500 }
+        );
     }
 }
 
-export async function POST(
-    req: NextRequest,
-    { params }: { params: Promise<{ courseId: string }> }
-) {
+// POST - Create new video
+export async function POST(request: Request, context: RouteContext) {
     try {
-        const user = await currentUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const { courseId } = await context.params;
+        const body = await request.json();
+        const { title, youtubeUrl, duration, description, order } = body;
+
+        if (!title || !youtubeUrl || !order) {
+            return NextResponse.json(
+                { error: 'Title, YouTube URL, and order are required' },
+                { status: 400 }
+            );
         }
 
-        const { courseId } = await params;
         const courseIdNum = parseInt(courseId);
-        const { title, youtubeUrl, duration, description, order } = await req.json();
+        if (isNaN(courseIdNum)) {
+            return NextResponse.json(
+                { error: 'Invalid course ID' },
+                { status: 400 }
+            );
+        }
 
-        const newVideo = await db.insert(courseVideo).values({
-            courseId: courseIdNum,
+        const [newVideo] = await db.insert(courseVideo).values({
             title,
             youtubeUrl,
             duration: duration || null,
             description: description || null,
             order,
+            courseId: courseIdNum,
         }).returning();
 
-        return NextResponse.json(newVideo[0]);
+        // Update course video count
+        const videoCount = await db
+            .select()
+            .from(courseVideo)
+            .where(eq(courseVideo.courseId, courseIdNum));
+
+        await db
+            .update(course)
+            .set({ videoCount: videoCount.length })
+            .where(eq(course.id, courseIdNum));
+
+        return NextResponse.json(newVideo);
     } catch (error) {
         console.error('Error creating video:', error);
-        return NextResponse.json({ error: 'Failed to create video' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Failed to create video' },
+            { status: 500 }
+        );
     }
 }
 
-export async function PUT(
-    req: NextRequest,
-    { params }: { params: Promise<{ courseId: string }> }
-) {
+// PUT - Update existing video
+export async function PUT(request: Request, context: RouteContext) {
     try {
-        const user = await currentUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const { courseId } = await context.params;
+        const body = await request.json();
+        const { id, title, youtubeUrl, duration, description, order } = body;
+
+        if (!id || !title || !youtubeUrl || !order) {
+            return NextResponse.json(
+                { error: 'ID, title, YouTube URL, and order are required' },
+                { status: 400 }
+            );
         }
 
-        const { id, title, youtubeUrl, duration, description, order } = await req.json();
+        const courseIdNum = parseInt(courseId);
+        if (isNaN(courseIdNum)) {
+            return NextResponse.json(
+                { error: 'Invalid course ID' },
+                { status: 400 }
+            );
+        }
 
-        const updatedVideo = await db
+        const [updatedVideo] = await db
             .update(courseVideo)
             .set({
                 title,
@@ -80,39 +120,69 @@ export async function PUT(
                 duration: duration || null,
                 description: description || null,
                 order,
+                updatedAt: new Date(),
             })
             .where(eq(courseVideo.id, id))
             .returning();
 
-        return NextResponse.json(updatedVideo[0]);
+        if (!updatedVideo) {
+            return NextResponse.json(
+                { error: 'Video not found' },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json(updatedVideo);
     } catch (error) {
         console.error('Error updating video:', error);
-        return NextResponse.json({ error: 'Failed to update video' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Failed to update video' },
+            { status: 500 }
+        );
     }
 }
 
-export async function DELETE(
-    req: NextRequest,
-    { params }: { params: Promise<{ courseId: string }> }
-) {
+// DELETE - Delete video
+export async function DELETE(request: Request, context: RouteContext) {
     try {
-        const user = await currentUser();
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const { courseId } = await context.params;
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json(
+                { error: 'Video ID is required' },
+                { status: 400 }
+            );
         }
 
-        const { searchParams } = new URL(req.url);
-        const videoId = searchParams.get('id');
-
-        if (!videoId) {
-            return NextResponse.json({ error: 'Video ID required' }, { status: 400 });
+        const courseIdNum = parseInt(courseId);
+        if (isNaN(courseIdNum)) {
+            return NextResponse.json(
+                { error: 'Invalid course ID' },
+                { status: 400 }
+            );
         }
 
-        await db.delete(courseVideo).where(eq(courseVideo.id, parseInt(videoId)));
+        await db.delete(courseVideo).where(eq(courseVideo.id, parseInt(id)));
+
+        // Update course video count
+        const videoCount = await db
+            .select()
+            .from(courseVideo)
+            .where(eq(courseVideo.courseId, courseIdNum));
+
+        await db
+            .update(course)
+            .set({ videoCount: videoCount.length })
+            .where(eq(course.id, courseIdNum));
 
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Error deleting video:', error);
-        return NextResponse.json({ error: 'Failed to delete video' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'Failed to delete video' },
+            { status: 500 }
+        );
     }
 }

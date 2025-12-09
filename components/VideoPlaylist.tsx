@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { PlayCircle, CheckCircle } from 'lucide-react';
 
@@ -18,17 +17,16 @@ interface VideoPlaylistProps {
     courseName: string;
     currentVideoIndex: number;
     onVideoChange: (index: number) => void;
+    completedVideos: Set<number>;
 }
 
-export default function VideoPlaylist({ videos, courseName, currentVideoIndex, onVideoChange }: VideoPlaylistProps) {
-    const [completedVideos, setCompletedVideos] = useState<Set<number>>(new Set());
-
+export default function VideoPlaylist({ videos, courseName, currentVideoIndex, onVideoChange, completedVideos }: VideoPlaylistProps) {
     const handleVideoClick = (index: number) => {
         onVideoChange(index);
     };
 
     return (
-        <Card className="h-fit max-h-[calc(100vh-200px)] overflow-hidden flex flex-col">
+        <Card className="h-fit max-h-[calc(100vh-200px)] overflow-hidden flex flex-col py-2">
             <CardHeader className="border-b">
                 <h3 className="font-bold text-lg">Course Content</h3>
                 <p className="text-sm text-muted-foreground">

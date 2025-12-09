@@ -3,8 +3,8 @@ import {
     LayoutDashboard,
     Layers,
     BookOpen,
-    Settings,
-    LogOut
+    LogOut,
+    LayoutGrid
 } from "lucide-react";
 import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
@@ -16,8 +16,13 @@ const sidebarLinks = [
         icon: LayoutDashboard
     },
     {
-        title: "Collections",
-        href: "/admin/collections",
+        title: "Categories",
+        href: "/admin/categories",
+        icon: LayoutGrid
+    },
+    {
+        title: "Products",
+        href: "/admin/products",
         icon: Layers
     },
     {
@@ -25,11 +30,7 @@ const sidebarLinks = [
         href: "/admin/courses",
         icon: BookOpen
     },
-    {
-        title: "Settings",
-        href: "/admin/settings",
-        icon: Settings
-    }
+
 ];
 
 export default function AdminSidebar() {

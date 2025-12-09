@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { SignInButton, useUser } from "@clerk/nextjs";
 
 interface EnrollButtonProps {
@@ -11,8 +10,7 @@ interface EnrollButtonProps {
 
 export default function EnrollButton({ courseId }: EnrollButtonProps) {
     const [loading, setLoading] = useState(false);
-    const router = useRouter();
-    const { isSignedIn, user } = useUser();
+    const { isSignedIn } = useUser();
 
     const handleEnroll = async () => {
         if (!isSignedIn) {
@@ -21,7 +19,7 @@ export default function EnrollButton({ courseId }: EnrollButtonProps) {
 
         setLoading(true);
         try {
-            const response = await fetch('/api/enroll', {
+            const response = await fetch('/api/checkout', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -31,16 +29,15 @@ export default function EnrollButton({ courseId }: EnrollButtonProps) {
 
             const data = await response.json();
 
-            if (response.ok) {
-                // Redirect to course page
-                router.push(`/courses/${courseId}?success=true`);
-                router.refresh();
+            if (response.ok && data.url) {
+                // Redirect to Stripe checkout
+                window.location.href = data.url;
             } else {
-                alert(data.error || 'Failed to enroll');
+                alert(data.error || 'Failed to create checkout session');
                 setLoading(false);
             }
         } catch (error) {
-            console.error('Enrollment error:', error);
+            console.error('Checkout error:', error);
             alert('An error occurred. Please try again.');
             setLoading(false);
         }
@@ -62,7 +59,7 @@ export default function EnrollButton({ courseId }: EnrollButtonProps) {
             onClick={handleEnroll}
             disabled={loading}
         >
-            {loading ? 'Enrolling...' : 'Enroll Now (Free)'}
+            {loading ? 'Processing...' : 'Enroll Now'}
         </Button>
     );
 }
