@@ -377,7 +377,7 @@ export default function CheckoutPage() {
 
                     {/* Right Column - Order Summary */}
                     <div>
-                        <div className="bg-card rounded-lg border p-6 sticky top-8">
+                        <div className="bg-card rounded-lg border p-4 sticky top-20">
                             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
 
                             {/* Products */}
