@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import ProductCard from "@/components/ProductCard";
+import CourseCard from "@/components/CourseCard";
+import HeroSearch from "@/components/HeroSearch";
 import Link from "next/link";
 
 interface Product {
@@ -12,6 +14,17 @@ interface Product {
   price: number;
   image: string;
   category: string;
+}
+
+interface Course {
+  id: number;
+  name: string;
+  description: string | null;
+  price: string;
+  imageUrl: string | null;
+  videoCount: number;
+  isPublished: boolean;
+  isFree: boolean;
 }
 
 
@@ -36,8 +49,30 @@ async function getFeaturedProducts() {
   }
 }
 
+async function getFeaturedCourses() {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const res = await fetch(`${baseUrl}/api/courses`, {
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      console.error('Failed to fetch courses');
+      return [];
+    }
+
+    const courses = await res.json();
+    // Return only first 4 courses for featured section
+    return courses.slice(0, 4);
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    return [];
+  }
+}
+
 const Home = async () => {
   const featuredProducts = await getFeaturedProducts();
+  const featuredCourses = await getFeaturedCourses();
 
   return (
     <div className="min-h-screen bg-background">
@@ -60,18 +95,7 @@ const Home = async () => {
             <p className="mb-8 text-lg text-white/90 md:text-xl">
               Explore our collection of robotics kits, electronic components, and learning resources for makers of all levels
             </p>
-            <div className="mx-auto flex max-w-xl gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search for projects, components, courses..."
-                  className="h-12 pl-10 bg-white"
-                />
-              </div>
-              <Button size="lg" variant="secondary" className="h-12">
-                Search
-              </Button>
-            </div>
+            <HeroSearch />
           </div>
         </div>
       </section>
@@ -124,7 +148,29 @@ const Home = async () => {
             ))
           ) : (
             <div className="col-span-full text-center text-muted-foreground py-8">
-              No products available yet. Check back soon!
+              No products available yet.
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Featured Courses */}
+      <section className="container mx-auto px-4 py-16 bg-muted/30">
+        <div className="mb-8 flex items-center justify-between">
+          <h3 className="text-2xl font-bold">Featured Courses</h3>
+          <Link href="/courses">
+            <Button variant="ghost">View All →</Button>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {featuredCourses.length > 0 ? (
+            featuredCourses.map((course: Course) => (
+              <CourseCard key={course.id} {...course} />
+            ))
+          ) : (
+            <div className="col-span-full text-center text-muted-foreground py-8">
+              No courses available yet.
             </div>
           )}
         </div>
