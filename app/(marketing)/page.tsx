@@ -7,6 +7,9 @@ import CourseCard from "@/components/CourseCard";
 import HeroSearch from "@/components/HeroSearch";
 import Link from "next/link";
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic';
+
 interface Product {
   id: number;
   title: string;
