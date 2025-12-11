@@ -4,7 +4,8 @@ import {
     Layers,
     BookOpen,
     LogOut,
-    LayoutGrid
+    LayoutGrid,
+    ShoppingBag
 } from "lucide-react";
 import Link from "next/link";
 import { SignOutButton } from "@clerk/nextjs";
@@ -29,6 +30,11 @@ const sidebarLinks = [
         title: "Courses",
         href: "/admin/courses",
         icon: BookOpen
+    },
+    {
+        title: "Orders",
+        href: "/admin/orders",
+        icon: ShoppingBag
     },
 
 ];

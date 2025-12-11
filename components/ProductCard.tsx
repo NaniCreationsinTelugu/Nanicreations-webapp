@@ -20,7 +20,7 @@ const ProductCard = ({ id, title, description, price, image, category }: Product
   const { toast } = useToast()
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-hover animate-scale-in py-0">
-        <Link href={`/product/${id}`}>
+      <Link href={`/product/${id}`}>
         <CardHeader className="p-0">
           <div className="relative h-48 w-full overflow-hidden bg-muted">
             <img
@@ -43,7 +43,7 @@ const ProductCard = ({ id, title, description, price, image, category }: Product
           </h3>
         </Link>
         <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">{description}</p>
-        <p className="text-xl font-bold text-primary">${price.toFixed(2)}</p>
+        <p className="text-xl font-bold text-primary">₹{price.toFixed(2)}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <Button className="w-full" onClick={() => { addItem({ id, title, price, image }); toast({ title: "Added to cart", description: title }) }}>

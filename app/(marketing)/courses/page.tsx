@@ -115,7 +115,7 @@ const Courses = () => {
                     {isEnrolled ? (
                       <Link href={`/courses/${courseItem.id}`} className="w-full">
                         <Button className="w-full" variant="default">
-                          Go to Course
+                          Continue Learning
                         </Button>
                       </Link>
                     ) : courseItem.isFree ? (

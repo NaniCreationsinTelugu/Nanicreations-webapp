@@ -60,14 +60,22 @@ const Navbar = () => {
                 </span>
               </Button>
             </Link>
-            
+
             <ClerkLoading>
               <Loader className="h-5 w-5 animate-spin text-muted-foreground" />
             </ClerkLoading>
 
-              <ClerkLoaded>
+            <ClerkLoaded>
               <SignedIn>
-                <UserButton />
+                <UserButton>
+                  <UserButton.MenuItems>
+                    <UserButton.Link
+                      label="My Orders"
+                      labelIcon={<ShoppingCart className="h-4 w-4" />}
+                      href="/orders"
+                    />
+                  </UserButton.MenuItems>
+                </UserButton>
               </SignedIn>
 
               <SignedOut>
@@ -121,7 +129,7 @@ const Navbar = () => {
               >
                 About
               </Link>
-          
+
             </div>
           </div>
         )}

@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Minus } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/lib/cart";
+
 const Cart = () => {
   const { items, updateQuantity, removeItem, subtotal } = useCart();
-  const shipping = subtotal > 50 ? 0 : 5.99;
+  const shipping = subtotal > 500 ? 0 : 50;
   const total = subtotal + shipping;
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -39,7 +41,7 @@ const Cart = () => {
                       <div>
                         <h3 className="font-semibold">{item.title}</h3>
                         <p className="text-lg font-bold text-primary">
-                          ${item.price.toFixed(2)}
+                          ₹{item.price.toFixed(2)}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
@@ -69,22 +71,27 @@ const Cart = () => {
                 <div className="space-y-3 border-b border-border pb-4">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                    <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Shipping</span>
                     <span className="font-semibold">
-                      {shipping === 0 ? "FREE" : `$${shipping.toFixed(2)}`}
+                      {shipping === 0 ? "FREE" : `₹${shipping.toFixed(2)}`}
                     </span>
                   </div>
+                  {subtotal > 500 && (
+                    <p className="text-xs text-green-600">🎉 You qualify for free shipping!</p>
+                  )}
                 </div>
                 <div className="mt-4 flex justify-between text-lg">
                   <span className="font-bold">Total</span>
-                  <span className="font-bold text-primary">${total.toFixed(2)}</span>
+                  <span className="font-bold text-primary">₹{total.toFixed(2)}</span>
                 </div>
-                <Button className="mt-6 w-full" size="lg">
-                  Proceed to Checkout
-                </Button>
+                <Link href="/checkout">
+                  <Button className="mt-6 w-full" size="lg">
+                    Proceed to Checkout
+                  </Button>
+                </Link>
                 <Link href="/collections">
                   <Button variant="outline" className="mt-3 w-full">
                     Continue Shopping
@@ -100,3 +107,4 @@ const Cart = () => {
 };
 
 export default Cart;
+

@@ -1,7 +1,7 @@
 import { db } from "@/db/drizzle";
 import { enrollment } from "@/db/schema";
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { currentUser } from "@clerk/nextjs/server";
 
 // GET user's enrollments (protected endpoint)
@@ -16,7 +16,12 @@ export async function GET() {
         const enrollments = await db
             .select()
             .from(enrollment)
-            .where(eq(enrollment.userId, user.id));
+            .where(
+                and(
+                    eq(enrollment.userId, user.id),
+                    eq(enrollment.paymentStatus, "completed")
+                )
+            );
 
         return NextResponse.json(enrollments);
     } catch (error) {

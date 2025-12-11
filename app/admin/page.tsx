@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { db } from "@/db/drizzle";
-import { course, enrollment, paymentSession } from "@/db/schema";
+import { course, enrollment } from "@/db/schema";
 import { sql } from "drizzle-orm";
 import { BookOpen, Users, DollarSign } from "lucide-react";
 
@@ -11,14 +11,17 @@ export default async function AdminDashboard() {
 
     const [enrollmentsCount] = await db
         .select({ count: sql<number>`count(*)` })
-        .from(enrollment);
+        .from(enrollment)
+        .where(sql`${enrollment.paymentStatus} = 'completed'`);
 
-    // Calculate total revenue (sum of amounts in paymentSession where status is completed)
-    // Note: This is a simplified calculation.
+    // Calculate total revenue from completed course enrollments
     const [revenue] = await db
-        .select({ total: sql<number>`sum(${paymentSession.amount})` })
-        .from(paymentSession)
-    // .where(eq(paymentSession.status, 'completed')); // Uncomment when status is reliably tracked
+        .select({
+            total: sql<number>`COALESCE(SUM(CAST(${course.price} AS DECIMAL)), 0)`
+        })
+        .from(enrollment)
+        .innerJoin(course, sql`${enrollment.courseId} = ${course.id}`)
+        .where(sql`${enrollment.paymentStatus} = 'completed'`);
 
     return (
         <div className="space-y-6">

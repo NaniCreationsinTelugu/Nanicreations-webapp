@@ -47,7 +47,8 @@ export default async function CoursePage({ params, searchParams }: CoursePagePro
             .where(
                 and(
                     eq(enrollment.userId, user.id),
-                    eq(enrollment.courseId, courseIdNum)
+                    eq(enrollment.courseId, courseIdNum),
+                    eq(enrollment.paymentStatus, "completed")
                 )
             )
             .limit(1);
