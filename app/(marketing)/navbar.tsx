@@ -15,6 +15,8 @@ import {
 } from "@clerk/nextjs";
 
 const Navbar = () => {
+  const { userId } = useAuth();
+  const isAdmin = userId === 'user_36jPyz5xU5kK1d9rZJQT2HmGUBp';
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { items } = useCart();
   const count = useMemo(() => items.reduce((s, i) => s + i.quantity, 0), [items]);
@@ -45,6 +47,11 @@ const Navbar = () => {
             <Link href="/about" className="text-sm font-medium transition-colors hover:text-primary">
               About
             </Link>
+            {isAdmin && (
+              <Link href="/admin" className="text-sm font-medium transition-colors hover:text-primary">
+                Admin
+              </Link>
+            )}
           </div>
 
           {/* Actions */}
@@ -129,6 +136,15 @@ const Navbar = () => {
               >
                 About
               </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  className="text-sm font-medium transition-colors hover:text-primary"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Admin
+                </Link>
+              )}
 
             </div>
           </div>

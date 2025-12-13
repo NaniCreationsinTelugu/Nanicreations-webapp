@@ -1,4 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
+
+// Define admin user ID
+const ADMIN_USER_ID = 'user_36jPyz5xU5kK1d9rZJQT2HmGUBp';
 
 // Define protected routes (only these will require authentication)
 const isProtectedRoute = createRouteMatcher([
@@ -7,9 +11,16 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  // Protect only admin routes
+  // Protect admin routes
   if (isProtectedRoute(req)) {
     await auth.protect();
+
+    // Check if user is the admin
+    const { userId } = await auth();
+    if (userId !== ADMIN_USER_ID) {
+      // Redirect non-admin users to homepage
+      return NextResponse.redirect(new URL('/', req.url));
+    }
   }
   // All other routes are public
 });
