@@ -4,21 +4,21 @@ import { Target, Users, Lightbulb } from "lucide-react";
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-background text-foreground"> 
+    <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto px-4 py-12">
         <div className="mx-auto max-w-4xl">
-          <h1 className="mb-8 text-center text-4xl font-bold">About Nani Creations</h1>
-          
+          <h1 className="mb-8 text-center text-4xl font-bold">About NC Robotics</h1>
+
           <div className="mb-12 animate-fade-in rounded-lg border border-border bg-card p-8">
             <p className="mb-4 text-lg text-muted-foreground">
-              Nani Creations Hub is your premier destination for robotics, electronics, and innovative learning. 
-              We're passionate about empowering students, makers, and educators with the tools and knowledge to 
+              Nani Creations Hub is your premier destination for robotics, electronics, and innovative learning.
+              We're passionate about empowering students, makers, and educators with the tools and knowledge to
               bring their ideas to life.
             </p>
             <p className="text-lg text-muted-foreground">
-              Founded in 2020, we've helped thousands of learners worldwide discover the joy of creating, 
-              building, and programming electronic projects. From beginners taking their first steps in 
-              Arduino to advanced makers developing complex IoT systems, we provide the resources and 
+              Founded in 2020, we've helped thousands of learners worldwide discover the joy of creating,
+              building, and programming electronic projects. From beginners taking their first steps in
+              Arduino to advanced makers developing complex IoT systems, we provide the resources and
               support you need to succeed.
             </p>
           </div>

@@ -37,7 +37,7 @@ export default function CheckoutPage() {
     const [shippingMethod, setShippingMethod] = useState("standard");
 
     // Calculate costs in INR
-    const shippingCost = shippingMethod === "fast" ? 150 : subtotal > 500 ? 0 : 50;
+    const shippingCost = shippingMethod === "fast" ? 150 : subtotal > 500 ? 0 : 70;
     const total = subtotal + shippingCost;
 
     const handleContinueToShipping = () => {
@@ -329,7 +329,7 @@ export default function CheckoutPage() {
                                                             <p className="text-xs text-muted-foreground">5-7 business days</p>
                                                         </div>
                                                         <span className="font-semibold">
-                                                            {subtotal > 500 ? "FREE" : "₹50.00"}
+                                                            {subtotal > 500 ? "FREE" : "₹70.00"}
                                                         </span>
                                                     </div>
                                                 </Label>

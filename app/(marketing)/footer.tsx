@@ -13,7 +13,7 @@ const Footer = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
                 <span className="text-xl font-bold text-primary-foreground">NC</span>
               </div>
-              <span className="text-xl font-bold">Nani Creations</span>
+              <span className="text-xl font-bold">NC Robotics</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Your one-stop destination for robotics, electronics, and innovative project kits. Empowering makers and learners worldwide.
@@ -53,15 +53,15 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-start space-x-2 text-sm text-muted-foreground">
                 <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
-                <span>123 Innovation Street, Tech City, TC 12345</span>
+                <span>Vizianagaram A.P</span>
               </li>
               <li className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span>+1 (555) 123-4567</span>
+                <span>+91 63008 73822</span>
               </li>
               <li className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>hello@nani-creations.com</span>
+                <span>ratnakarpedadda@gmail.com</span>
               </li>
             </ul>
           </div>
@@ -71,7 +71,7 @@ const Footer = () => {
             <h3 className="mb-4 text-sm font-semibold">Follow Us</h3>
             <div className="flex space-x-3">
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/share/17qjS9JHVA"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
@@ -79,7 +79,7 @@ const Footer = () => {
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="https://youtube.com"
+                href="https://youtube.com/@NaniCreationsInTelugu"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
@@ -87,7 +87,7 @@ const Footer = () => {
                 <Youtube className="h-5 w-5" />
               </a>
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/thetelugutechwala"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
@@ -100,7 +100,7 @@ const Footer = () => {
 
         <div className="mt-8 border-t border-border pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Nani Creations. All rights reserved.
+            © {new Date().getFullYear()} NC Robotics. All rights reserved.
           </p>
         </div>
       </div>
