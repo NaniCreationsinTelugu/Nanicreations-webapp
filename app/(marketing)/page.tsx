@@ -6,6 +6,9 @@ import ProductCard from "@/components/ProductCard";
 import CourseCard from "@/components/CourseCard";
 import HeroSearch from "@/components/HeroSearch";
 import Link from "next/link";
+import { db } from "@/db/drizzle";
+import { product, course, category } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic';
@@ -33,19 +36,28 @@ interface Course {
 
 async function getFeaturedProducts() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/products`, {
-      cache: 'no-store', // Always fetch fresh data
-    });
+    const products = await db
+      .select({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        images: product.images,
+        categoryId: product.categoryId,
+        categoryName: category.name,
+      })
+      .from(product)
+      .leftJoin(category, eq(product.categoryId, category.id))
+      .limit(4);
 
-    if (!res.ok) {
-      console.error('Failed to fetch products');
-      return [];
-    }
-
-    const products = await res.json();
-    // Return only first 4 products for featured section
-    return products.slice(0, 4);
+    return products.map((p) => ({
+      id: p.id,
+      title: p.name || "",
+      description: p.description || "",
+      price: parseFloat(p.price as string) || 0,
+      image: Array.isArray(p.images) && p.images.length > 0 ? (p.images as string[])[0] : "/placeholder.jpg",
+      category: p.categoryName || "",
+    }));
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];
@@ -54,19 +66,13 @@ async function getFeaturedProducts() {
 
 async function getFeaturedCourses() {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/courses`, {
-      cache: 'no-store',
-    });
+    const courses = await db
+      .select()
+      .from(course)
+      .where(eq(course.isPublished, true))
+      .limit(4);
 
-    if (!res.ok) {
-      console.error('Failed to fetch courses');
-      return [];
-    }
-
-    const courses = await res.json();
-    // Return only first 4 courses for featured section
-    return courses.slice(0, 4);
+    return courses;
   } catch (error) {
     console.error('Error fetching courses:', error);
     return [];
