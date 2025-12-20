@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import ImageUpload from "@/components/admin/ImageUpload";
 import { useState, useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import VariantsManager from "./VariantsManager";
 
 interface Category {
     id: number;
@@ -58,6 +60,7 @@ export default function ProductDialog({
     const [stock, setStock] = useState(0);
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [activeTab, setActiveTab] = useState("details");
 
     useEffect(() => {
         // Fetch categories
@@ -83,6 +86,7 @@ export default function ProductDialog({
             setImages(product.images);
             setCategoryId(product.categoryId.toString());
             setStock(product.stock);
+            setActiveTab("details");
         } else {
             setName("");
             setDescription("");
@@ -90,6 +94,7 @@ export default function ProductDialog({
             setImages([]);
             setCategoryId("");
             setStock(0);
+            setActiveTab("details");
         }
     }, [product, open]);
 
@@ -122,6 +127,10 @@ export default function ProductDialog({
             }
 
             onSuccess();
+            // Don't close immediately if creating, maybe specific logic?
+            // For now, we close on success logic from parent or here.
+            // If we want to allow immediate variant editing after create, we'd need to handle that.
+            // Simplified: User Creates -> Dialog Closes -> User Re-opens to Edit Variants.
             onOpenChange(false);
         } catch (error: any) {
             alert(error.message);
@@ -132,105 +141,121 @@ export default function ProductDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
                         {product ? "Edit Product" : "Create Product"}
                     </DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Product Name</Label>
-                            <Input
-                                id="name"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="Enter product name"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Textarea
-                                id="description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Enter product description"
-                                required
-                                rows={4}
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="price">Price (₹)</Label>
-                                <Input
-                                    id="price"
-                                    type="number"
-                                    step="0.01"
-                                    value={price}
-                                    onChange={(e) => setPrice(e.target.value)}
-                                    placeholder="0.00"
-                                    required
-                                />
+
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="details">General Details</TabsTrigger>
+                        <TabsTrigger value="variants" disabled={!product}>
+                            Variants {(!product) && "(Save first)"}
+                        </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="details">
+                        <form onSubmit={handleSubmit}>
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name">Product Name</Label>
+                                    <Input
+                                        id="name"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        placeholder="Enter product name"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="description">Description</Label>
+                                    <Textarea
+                                        id="description"
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        placeholder="Enter product description"
+                                        required
+                                        rows={4}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="price">Price (₹)</Label>
+                                        <Input
+                                            id="price"
+                                            type="number"
+                                            step="0.01"
+                                            value={price}
+                                            onChange={(e) => setPrice(e.target.value)}
+                                            placeholder="0.00"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="category">Category</Label>
+                                        <Select
+                                            value={categoryId}
+                                            onValueChange={setCategoryId}
+                                            required
+                                        >
+                                            <SelectTrigger id="category">
+                                                <SelectValue placeholder="Select category" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {categories.map((cat) => (
+                                                    <SelectItem
+                                                        key={cat.id}
+                                                        value={cat.id.toString()}
+                                                    >
+                                                        {cat.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Product Image</Label>
+                                    <ImageUpload
+                                        value={images[0] || ""}
+                                        onChange={(url) => setImages([url])}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="stock">Stock Quantity</Label>
+                                    <Input
+                                        id="stock"
+                                        type="number"
+                                        min="0"
+                                        value={stock}
+                                        onChange={(e) => setStock(parseInt(e.target.value) || 0)}
+                                        placeholder="0"
+                                        required
+                                    />
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="category">Category</Label>
-                                <Select
-                                    value={categoryId}
-                                    onValueChange={setCategoryId}
-                                    required
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => onOpenChange(false)}
+                                    disabled={loading}
                                 >
-                                    <SelectTrigger id="category">
-                                        <SelectValue placeholder="Select category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map((cat) => (
-                                            <SelectItem
-                                                key={cat.id}
-                                                value={cat.id.toString()}
-                                            >
-                                                {cat.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Product Image</Label>
-                            <ImageUpload
-                                value={images[0] || ""}
-                                onChange={(url) => setImages([url])}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="stock">Stock Quantity</Label>
-                            <Input
-                                id="stock"
-                                type="number"
-                                min="0"
-                                value={stock}
-                                onChange={(e) => setStock(parseInt(e.target.value) || 0)}
-                                placeholder="0"
-                                required
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                            disabled={loading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={loading || images.length === 0}>
-                            {loading ? "Saving..." : product ? "Update" : "Create"}
-                        </Button>
-                    </DialogFooter>
-                </form>
+                                    Cancel
+                                </Button>
+                                <Button type="submit" disabled={loading || images.length === 0}>
+                                    {loading ? "Saving..." : product ? "Update" : "Create"}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </TabsContent>
+
+                    <TabsContent value="variants">
+                        {product && <VariantsManager productId={product.id} />}
+                    </TabsContent>
+                </Tabs>
             </DialogContent>
         </Dialog>
     );

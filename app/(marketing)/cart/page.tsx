@@ -40,6 +40,9 @@ const Cart = () => {
                     <div className="flex flex-1 flex-col justify-between">
                       <div>
                         <h3 className="font-semibold">{item.title}</h3>
+                        {item.variantOptions && (
+                          <p className="text-sm text-muted-foreground">{item.variantOptions}</p>
+                        )}
                         <p className="text-lg font-bold text-primary">
                           ₹{item.price.toFixed(2)}
                         </p>

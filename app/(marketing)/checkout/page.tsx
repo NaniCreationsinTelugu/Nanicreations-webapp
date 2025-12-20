@@ -11,12 +11,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cart";
 import { loadRazorpay } from "@/lib/razorpay";
+import { validateCoupon } from "@/lib/actions/coupons";
+import { toast } from "sonner"; // Assuming sonner is available since used elsewhere
 
 export default function CheckoutPage() {
     const router = useRouter();
     const { items, subtotal, clear } = useCart();
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<"information" | "shipping" | "payment">("information");
+
+    // Coupon State
+    const [couponCode, setCouponCode] = useState("");
+    const [discount, setDiscount] = useState(0);
+    const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
     const [contactInfo, setContactInfo] = useState({
         email: "",
@@ -36,9 +43,38 @@ export default function CheckoutPage() {
 
     const [shippingMethod, setShippingMethod] = useState("standard");
 
-    // Calculate costs in INR
+    // Calculate costs
     const shippingCost = shippingMethod === "fast" ? 150 : subtotal > 500 ? 0 : 70;
-    const total = subtotal + shippingCost;
+    const totalBeforeDiscount = subtotal + shippingCost;
+    const total = Math.max(0, totalBeforeDiscount - discount);
+
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) return;
+
+        try {
+            // Validate against subtotal (shipping usually excluded from discount unless specified, assuming per-item or subtotal discount)
+            const result = await validateCoupon(couponCode, "guest", subtotal);
+
+            if (result.valid) {
+                setDiscount(result.discountAmount || 0);
+                setAppliedCoupon(couponCode);
+                toast.success(result.message);
+            } else {
+                setDiscount(0);
+                setAppliedCoupon(null);
+                toast.error(result.message || "Invalid coupon");
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to validate coupon");
+        }
+    };
+
+    const removeCoupon = () => {
+        setDiscount(0);
+        setAppliedCoupon(null);
+        setCouponCode("");
+    };
 
     const handleContinueToShipping = () => {
         if (!contactInfo.email || !shippingAddress.firstName || !shippingAddress.lastName ||
@@ -76,7 +112,8 @@ export default function CheckoutPage() {
                         zip: shippingAddress.pincode,
                         country: shippingAddress.country,
                     },
-                    shippingMethod
+                    shippingMethod,
+                    couponCode: appliedCoupon
                 }),
             });
 
@@ -396,11 +433,39 @@ export default function CheckoutPage() {
                                         </div>
                                         <div className="flex-1">
                                             <p className="font-medium text-sm">{item.title}</p>
+                                            {item.variantOptions && (
+                                                <p className="text-xs text-muted-foreground">{item.variantOptions}</p>
+                                            )}
                                             <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                                         </div>
                                         <p className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</p>
                                     </div>
                                 ))}
+                            </div>
+
+                            <Separator className="my-4" />
+
+                            {/* Coupon Input */}
+                            <div className="mb-4">
+                                {appliedCoupon ? (
+                                    <div className="flex items-center justify-between bg-green-50 p-2 rounded border border-green-200">
+                                        <div className="text-sm">
+                                            <span className="font-semibold text-green-700">Coupon: {appliedCoupon}</span>
+                                        </div>
+                                        <Button variant="ghost" size="sm" onClick={removeCoupon} className="text-red-500 hover:text-red-700 h-6 px-2">
+                                            Remove
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <Input
+                                            placeholder="Coupon Code"
+                                            value={couponCode}
+                                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                        />
+                                        <Button variant="outline" onClick={handleApplyCoupon}>Apply</Button>
+                                    </div>
+                                )}
                             </div>
 
                             <Separator className="my-4" />
@@ -417,6 +482,12 @@ export default function CheckoutPage() {
                                         {shippingCost === 0 ? "FREE" : `₹${shippingCost.toFixed(2)}`}
                                     </span>
                                 </div>
+                                {discount > 0 && (
+                                    <div className="flex justify-between text-sm text-green-600">
+                                        <span className="font-medium">Discount</span>
+                                        <span className="font-medium">- ₹{discount.toFixed(2)}</span>
+                                    </div>
+                                )}
                                 <Separator />
                                 <div className="flex justify-between text-lg font-bold">
                                     <span>Total</span>

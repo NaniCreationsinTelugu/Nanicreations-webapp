@@ -101,6 +101,30 @@ export default async function ProductPage({
         ? await getRelatedProducts(product.categoryId, product.id)
         : [];
 
+    // Fetch variants and options
+    const { getProductOptions, getProductVariants } = await import("@/lib/actions/variants");
+    const optionsRaw = await getProductOptions(product.id);
+    const variantsRaw = await getProductVariants(product.id);
+
+    const options = optionsRaw.map(opt => ({
+        id: opt.id,
+        name: opt.name,
+        values: opt.values.map(v => ({ id: v.id, name: v.name }))
+    }));
+
+    const variants = variantsRaw.map(v => ({
+        id: v.id,
+        price: v.price,
+        stock: v.stock,
+        sku: v.sku,
+        image: v.image,
+        optionValues: v.optionValues.map(ov => ({
+            optionName: ov.optionValue.option.name,
+            value: ov.optionValue.name,
+            optionValueId: ov.optionValueId
+        }))
+    }));
+
     // Transform product data to match client expectations
     const transformedProduct = {
         id: product.id,
@@ -122,5 +146,12 @@ export default async function ProductPage({
         features: [],
     };
 
-    return <ProductDetailClient product={transformedProduct} relatedProducts={relatedProducts} />;
+    return (
+        <ProductDetailClient
+            product={transformedProduct}
+            relatedProducts={relatedProducts}
+            options={options}
+            variants={variants}
+        />
+    );
 }
